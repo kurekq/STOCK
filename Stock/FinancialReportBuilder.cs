@@ -11,14 +11,86 @@ namespace Stock
     {
         private Stock stock;
         private List<FinancialReport> Reports;
+        private BiznesRadar br = new BiznesRadar();
         public FinancialReportBuilder(Stock stock)
         {
             this.stock = stock;
             this.Reports = new List<FinancialReport>();
         }
+        private string GetMinPeriod(string methodName)
+        {
+            string HtmlCode = "";
+            if (methodName == "GetFinancialIncomeReportHtml")
+            {
+                HtmlCode = br.GetFinancialIncomeReportHtml(stock.BiznesRadarName);
+            }
+            else if (methodName == "GetFinancialBalanceReportHtml")
+            {
+                HtmlCode = br.GetFinancialBalanceReportHtml(stock.BiznesRadarName);
+            }
+            else if (methodName == "GetFinancialCashflowReportHtml")
+            {
+                HtmlCode = br.GetFinancialCashflowReportHtml(stock.BiznesRadarName);
+            }
+            else if (methodName == "GetProfitIndicatorsHtml")
+            {
+                HtmlCode = br.GetProfitIndicatorsHtml(stock.BiznesRadarName);
+            }
+            else if (methodName == "GetFinancialIndicatorsHtml")
+            {
+                HtmlCode = br.GetFinancialIndicatorsHtml(stock.BiznesRadarName);
+            }
+
+            string reportTable = HtmlParser.GetHtml(HtmlCode, "<table class=\"report-table\"", @"</table>");
+            string periodTr = HtmlParser.GetHtml(reportTable, "<tr>", "</tr>");
+
+            string periodTh = HtmlParser.GetHtml(periodTr, "<th class=\"thq h", "</th>");
+            string period = HtmlParser.GetHtmlValue(periodTh, "\">", "<span>").Trim();
+            return period;
+        }
+
+        private string GetMinPeriod()
+        {
+
+            int counter = 1;
+            string firstMaxPeriod = "";
+            while (counter <= 5)
+            {
+                string methodName = "";
+                if (counter == 1)
+                {
+                    methodName = "GetFinancialIncomeReportHtml";
+                }
+                else if (counter == 2)
+                {
+                    methodName = "GetFinancialBalanceReportHtml";
+                }
+                else if (counter == 3)
+                {
+                    methodName = "GetFinancialCashflowReportHtml";
+                }
+                else if (counter == 4)
+                {
+                    methodName = "GetProfitIndicatorsHtml";
+                }
+                else if (counter == 5)
+                {
+                    methodName = "GetFinancialIndicatorsHtml";
+                }
+
+                string period = GetMinPeriod(methodName);
+                if (string.IsNullOrEmpty(firstMaxPeriod) || string.Compare(firstMaxPeriod, period) < 0)
+                {
+                    firstMaxPeriod = period;
+                }
+                counter++;
+            }
+
+            return firstMaxPeriod;
+        }
+
         public List<FinancialReport> Build()
         {
-            BiznesRadar br = new BiznesRadar();
             FinancialReport report = new FinancialReport();
             
             string HtmlCode = br.GetFinancialIncomeReportHtml(stock.BiznesRadarName);
@@ -26,19 +98,24 @@ namespace Stock
             string reportTable = HtmlParser.GetHtml(HtmlCode, "<table class=\"report-table\"", @"</table>");
             string periodTr = HtmlParser.GetHtml(reportTable, "<tr>", "</tr>");
 
+            string minPeriod = GetMinPeriod();
             while (true)
             {
                 report = new FinancialReport();
                 report.ISIN = stock.ISIN;
-                string periodTh = HtmlParser.GetHtml(periodTr, "<th class=\"thq h\"", "</th>");
+                string periodTh = HtmlParser.GetHtml(periodTr, "<th class=\"thq h", "</th>");
                 if (string.IsNullOrEmpty(periodTh))
                 {
                     break;
                 }
-                report.Period = HtmlParser.GetHtmlValue(periodTh, "\">", "<span>").Trim();
-                periodTr = HtmlParser.RemoveFromHtml(periodTr, "<th class=\"thq h\"", "</th>");
+                string period = HtmlParser.GetHtmlValue(periodTh, "\">", "<span>").Trim();
+                if (string.Compare(period, minPeriod) >= 0)
+                {
+                    report.Period = period;
+                    Reports.Add(report);
+                }
 
-                Reports.Add(report);
+                periodTr = HtmlParser.RemoveFromHtml(periodTr, "<th class=\"thq h", "</th>");
             }
 
             HtmlCode = financialReportHtml + br.GetFinancialBalanceReportHtml(stock.BiznesRadarName) + br.GetFinancialCashflowReportHtml(stock.BiznesRadarName)
@@ -46,10 +123,10 @@ namespace Stock
 
             foreach (FieldInfo fieldInfo in typeof(FinancialReport).GetFields().Where(x => x.Name != "Period"))
             {
-                string tr = HtmlParser.GetHtml(HtmlCode, $"data-field=\"{fieldInfo.Name}\">", "</tr>");
-                foreach (FinancialReport r in Reports.OrderBy(x => x.Period))
+                string tr = HtmlParser.GetHtml(HtmlCode, $"data-field=\"{fieldInfo.Name}\">", "</tr>", GET_HTML_ORDER.LAST);
+                foreach (FinancialReport r in Reports.OrderByDescending(x => x.Period))
                 {
-                    string td = HtmlParser.GetHtml(tr, "<span class=\"value\">", "</span>");
+                    string td = HtmlParser.GetHtml(tr, "<span class=\"value\">", "</span>", GET_HTML_ORDER.LAST);
                     if (string.IsNullOrEmpty(td))
                     {
                         break;
@@ -78,7 +155,7 @@ namespace Stock
                         fieldInfo.SetValue(r, value);
                     }
 
-                    tr = HtmlParser.RemoveFromHtml(tr, "<span class=\"value\">", "</span>");
+                    tr = HtmlParser.RemoveFromHtml(tr, "<span class=\"value\">", "</span>", GET_HTML_ORDER.LAST);
                 }
             }
             return new List<FinancialReport>(Reports);

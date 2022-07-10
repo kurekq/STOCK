@@ -38,9 +38,9 @@ namespace Stock
         {
             get
             {
-                if (FinancialReport.Count > 0)
+                if (FinancialReports.Count > 0)
                 {
-                    return FinancialReport.Min(x => x.PrimaryReport);
+                    return FinancialReports.Min(x => x.PrimaryReport);
                 }
                 else
                 {
@@ -50,7 +50,7 @@ namespace Stock
             }
         }
         public List<ArchiveListinings> ArchiveListenings = new List<ArchiveListinings>();
-        public List<FinancialReport> FinancialReport = new List<FinancialReport>();
+        public List<FinancialReport> FinancialReports = new List<FinancialReport>();
         public bool IsEmpty
         {
             get
@@ -72,7 +72,7 @@ namespace Stock
             List<string> sqls = new List<string>();
             sqls.Add(this.GetSQLInsert());
 
-            foreach (FinancialReport fr in FinancialReport)
+            foreach (FinancialReport fr in FinancialReports)
             {
                 sqls.Add(fr.GetSQLInsert());
             }
@@ -90,19 +90,26 @@ namespace Stock
 
         private void FulfillShareAmount()
         {
-            foreach (ArchiveListinings arch in ArchiveListenings.Where(a => a.ListeningDate >= this.FinancialDebutDate).OrderBy(a => a.ListeningDate))
+            foreach (ArchiveListinings arch in ArchiveListenings.Where(a => a.ListeningDate >= this.FinancialDebutDate).OrderByDescending(a => a.ListeningDate))
             {
-                FinancialReport reportForListening = FinancialReport.Where(f => f.PrimaryReport >= arch.ListeningDate).OrderBy(f => f.PrimaryReport).FirstOrDefault();
+                FinancialReport reportForListening = FinancialReports.Where(f => f.PrimaryReport >= arch.ListeningDate).OrderBy(f => f.PrimaryReport).FirstOrDefault();
 
                 if (reportForListening == null)
                 {
-                    reportForListening = FinancialReport.OrderByDescending(f => f.PrimaryReport).FirstOrDefault();
+                    reportForListening = FinancialReports.OrderByDescending(f => f.PrimaryReport).FirstOrDefault();
                 }
                     
                 if (reportForListening != null)
                 {
                     arch.ShareAmount = reportForListening.ShareAmount;
                 }
+            }
+        }
+        private void FulfillPriceToProfit()
+        {
+            foreach (ArchiveListinings arch in ArchiveListenings.Where(a => a.ListeningDate >= this.FinancialDebutDate).OrderBy(a => a.ListeningDate))
+            {
+                arch.PriceToProfit = new PriceToProfitCalculation(this.FinancialReports, arch).Calculate();
             }
         }
     }

@@ -41,5 +41,6 @@ namespace Stock
                 return ShareAmount * ClosePrice;
             }
         }
+        public decimal? PriceToProfit;
     }
 }

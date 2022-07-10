@@ -10,11 +10,11 @@ namespace Stock
         public void FillFromDatabase()
         {
             Database db = new Database();
-            stocks = db.GetQueryResult(typeof(Stock)).ConvertAll(x => (Stock)x);
+            stocks = db.GetQueryResult(typeof(Stock), "TICKER = 'TIM'").ConvertAll(x => (Stock)x);
             foreach (Stock s in stocks)
             {
                 s.ArchiveListenings = db.GetQueryResult(typeof(ArchiveListinings), $"ISIN = '{s.ISIN}'").ConvertAll(x => (ArchiveListinings)x);
-                s.FinancialReport = db.GetQueryResult(typeof(FinancialReport), $"ISIN = '{s.ISIN}'").ConvertAll(x => (FinancialReport)x);
+                s.FinancialReports = db.GetQueryResult(typeof(FinancialReport), $"ISIN = '{s.ISIN}'").ConvertAll(x => (FinancialReport)x);
                 s.AfterFulfillingFromDatabase();
             }
         }

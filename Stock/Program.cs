@@ -15,11 +15,14 @@ namespace Stock
     {
         static void Main(string[] args)
         {
-            Stocks stocks = new Stocks();
-            stocks.FillFromDatabase();
+            Database db = new Database();
 
-            Stock s = stocks.stocks.Where(x => x.Ticker == "NESTMEDIC").First();
+            //Stocks stocks = new Stocks();
+            //stocks.FillFromDatabase();
 
+
+            GetStocks(Market.GPW);
+            GetStocks(Market.NEW_CONNECT);
             //StockIndexes stocks = new StockIndexes();
             //stocks.FillFromDatabase();
 
@@ -28,7 +31,6 @@ namespace Stock
 
             return;
 
-            Database db = new Database();
             Currency curr = new Currency();
             List<string> brName = new List<string>();
             brName.Add("CHF-FRANK-SZWAJCARSKI");
@@ -47,7 +49,7 @@ namespace Stock
                 db.RunNonQuery(curr.GetAllSqlsInsert());
             }
         }
-        private static List<Stock> GetStocks(Market market)
+        private static List<Stock> GetStocks(Market market, string stockName = "")
         {
             Database db = new Database();
             StockNamesBuilder snBuilder = new StockNamesBuilder();
@@ -58,35 +60,43 @@ namespace Stock
             if (market == Market.GPW)
             {
                 marketName = "GPW";
-                int cnt = 1;
-                foreach (string s in snBuilder.Get(market).Where(x => x != "IFR"))
-                {
-                    if (cnt > 1420)
-                    {
-                        stockNames.Add(s);
-                    }
-                    cnt++;
-                }
-                
             }
             else
             {
                 marketName = "NC";
-                int cnt = 1;
-                foreach (string s in snBuilder.Get(market))
+            }
+
+            if (!string.IsNullOrEmpty(stockName))
+            {
+                stockNames.Add(stockName);
+            }
+            else
+            {           
+                if (market == Market.GPW)
                 {
-                    if (cnt > 193)
+                    int cnt = 1;
+                    foreach (string s in snBuilder.Get(market).Where(x => x != "IFR"))
                     {
                         stockNames.Add(s);
                     }
-                    cnt++;
+
+                }
+                else
+                {
+                    int cnt = 1;
+                    foreach (string s in snBuilder.Get(market))
+                    {
+                        stockNames.Add(s);
+                        cnt++;
+                    }
                 }
             }
 
 
-            foreach (string stockName in stockNames)
+
+            foreach (string sN in stockNames)
             {
-                StockBuilder sbuilder = new StockBuilder(stockName);
+                StockBuilder sbuilder = new StockBuilder(sN);
                 sbuilder.Build();
                 Stock stock = sbuilder.Get();
                 
@@ -96,32 +106,17 @@ namespace Stock
                 stocks.Add(stock);
 
                 FinancialReportBuilder financialReportBuilder = new FinancialReportBuilder(stock);
-                stock.FinancialReport = financialReportBuilder.Get();
+                stock.FinancialReports = financialReportBuilder.Get();
 
                 ListeningBuilder archiveListeningsBuilder = new ListeningBuilder(stock);
                 stock.ArchiveListenings = archiveListeningsBuilder.GetArchiveListinings();
 
                 db.RunNonQuery(stock.GetAllSqlsInsert());
 
-                Console.WriteLine($"{counter}. {stockName}: " + DateTime.Now);
+                Console.WriteLine($"{counter}. {sN}: " + DateTime.Now);
                 counter++;
             }
             return stocks;
-        }
-    }
-
-    public class CookieAwareWebClient : WebClient
-    {
-        private CookieContainer cookie = new CookieContainer();
-
-        protected override WebRequest GetWebRequest(Uri address)
-        {
-            WebRequest request = base.GetWebRequest(address);
-            if (request is HttpWebRequest)
-            {
-                (request as HttpWebRequest).CookieContainer = cookie;
-            }
-            return request;
         }
     }
 }

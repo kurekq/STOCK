@@ -56,18 +56,29 @@ namespace Stock
         {
             return @"http://www.biznesradar.pl/wskazniki-wartosci-rynkowej/" + company;
         }
+
+        private string financialIndicators;
         public string GetFinancialIndicatorsHtml(string company)
         {
-            return GetHtml(GetFinancialIndicatorsUrl(company));
+            if (string.IsNullOrEmpty(financialIndicators))
+            {
+                financialIndicators = GetHtml(GetFinancialIndicatorsUrl(company));
+            }
+            return financialIndicators;
         }
 
         private string GetProfitIndicatorsUrl(string company)
         {
             return @"http://www.biznesradar.pl/wskazniki-rentownosci/" + company;
         }
+        private string profitIndicators;
         public string GetProfitIndicatorsHtml(string company)
         {
-            return GetHtml(GetProfitIndicatorsUrl(company));
+            if (string.IsNullOrEmpty(profitIndicators))
+            {
+                profitIndicators = GetHtml(GetProfitIndicatorsUrl(company));
+            }
+            return profitIndicators;
         }
 
         private string GetMainPageUrl(string biznesRadarName)
@@ -83,26 +94,40 @@ namespace Stock
             }
             return url;
         }
-
+        string financialIncomeReport;
         public string GetFinancialIncomeReportHtml(string company)
         {
-            return GetHtml(GetFinancialIncomeReportUrl(company));
+            if (string.IsNullOrEmpty(financialIncomeReport))
+            {
+                financialIncomeReport = GetHtml(GetFinancialIncomeReportUrl(company));
+            }
+            return financialIncomeReport;
         }
         private string GetFinancialIncomeReportUrl(string company)
         {
             return $"http://www.biznesradar.pl/raporty-finansowe-rachunek-zyskow-i-strat/{company},Q";
         }
+        string financialBalanceReport;
         public string GetFinancialBalanceReportHtml(string company)
         {
-            return GetHtml(GetFinancialBalanceReportUrl(company));
+            if (string.IsNullOrEmpty(financialBalanceReport))
+            {
+                financialBalanceReport = GetHtml(GetFinancialBalanceReportUrl(company));
+            }
+            return financialBalanceReport;
         }
         private string GetFinancialBalanceReportUrl(string company)
         {
             return $"http://www.biznesradar.pl/raporty-finansowe-bilans/{company},Q,0";
         }
+        string financialCashFlowReport;
         public string GetFinancialCashflowReportHtml(string company)
         {
-            return GetHtml(GetFinancialCashflowReportUrl(company));
+            if (string.IsNullOrEmpty(financialCashFlowReport))
+            {
+                financialCashFlowReport = GetHtml(GetFinancialCashflowReportUrl(company));
+            }
+            return financialCashFlowReport;
         }
         private string GetFinancialCashflowReportUrl(string company)
         {
