@@ -21,6 +21,19 @@ namespace Stock
         [DatabaseField]
         public decimal ClosePrice;
 
+        public Listinings Before;
+
+        public decimal? PriceChange
+        {
+            get
+            {
+                if (Before != null)
+                {
+                    return Math.Round(this.ClosePrice / Before.ClosePrice * 100 - 100, 4);
+                }
+                return null;                
+            }
+        }
         public string GetSQLInsert()
         {
             return SqlBuilder.GetInsertTableQuery(this);

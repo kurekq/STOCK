@@ -15,14 +15,30 @@ namespace Stock
     {
         static void Main(string[] args)
         {
+
+            new DividendsBuilder(
+                new Stock()
+                {
+                    BiznesRadarName = "TIM"
+                }).Get();
+            return;
             Database db = new Database();
 
-            //Stocks stocks = new Stocks();
-            //stocks.FillFromDatabase();
+            Stocks stocks = new Stocks();
+            stocks.FillFromDatabase();
 
-
-            GetStocks(Market.GPW);
-            GetStocks(Market.NEW_CONNECT);
+            int counter = 0;
+            foreach (ArchiveListinings arch in stocks.stocks.Select(s => s.ArchiveListenings.OrderByDescending(x => x.ListeningDate)).First())
+            {
+                if (counter < 10)
+                {
+                    Console.WriteLine(arch.ListeningDate + ": " + arch.PriceChange);
+                }
+                
+                counter++;
+            }
+            //GetStocks(Market.GPW);
+            //GetStocks(Market.NEW_CONNECT);
             //StockIndexes stocks = new StockIndexes();
             //stocks.FillFromDatabase();
 
@@ -77,43 +93,51 @@ namespace Stock
                     int cnt = 1;
                     foreach (string s in snBuilder.Get(market).Where(x => x != "IFR"))
                     {
-                        stockNames.Add(s);
+                        if (cnt > 0)
+                        {
+                            stockNames.Add(s);
+                        }
+                        cnt++;
                     }
-
                 }
                 else
                 {
                     int cnt = 1;
                     foreach (string s in snBuilder.Get(market))
                     {
-                        stockNames.Add(s);
+                        if (cnt > 0)
+                        {
+                            stockNames.Add(s);
+                        }                       
                         cnt++;
                     }
                 }
             }
-
-
 
             foreach (string sN in stockNames)
             {
                 StockBuilder sbuilder = new StockBuilder(sN);
                 sbuilder.Build();
                 Stock stock = sbuilder.Get();
-                
-                stock.MarketName = marketName;
-                string sqlTest = stock.GetSQLInsert();
 
-                stocks.Add(stock);
+                if (!stock.IsEmpty)
+                {
+                    stock.MarketName = marketName;
+                    string sqlTest = stock.GetSQLInsert();
 
-                FinancialReportBuilder financialReportBuilder = new FinancialReportBuilder(stock);
-                stock.FinancialReports = financialReportBuilder.Get();
+                    stocks.Add(stock);
 
-                ListeningBuilder archiveListeningsBuilder = new ListeningBuilder(stock);
-                stock.ArchiveListenings = archiveListeningsBuilder.GetArchiveListinings();
+                    FinancialReportBuilder financialReportBuilder = new FinancialReportBuilder(stock);
+                    stock.FinancialReports = financialReportBuilder.Get();
 
-                db.RunNonQuery(stock.GetAllSqlsInsert());
+                    ListeningBuilder archiveListeningsBuilder = new ListeningBuilder(stock);
+                    stock.ArchiveListenings = archiveListeningsBuilder.GetArchiveListinings();
 
-                Console.WriteLine($"{counter}. {sN}: " + DateTime.Now);
+                    db.RunNonQuery(stock.GetAllSqlsInsert());
+
+                    Console.WriteLine($"{counter}. {sN}: " + DateTime.Now);
+                }
+               
                 counter++;
             }
             return stocks;

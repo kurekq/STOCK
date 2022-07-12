@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Stock
@@ -14,6 +15,13 @@ namespace Stock
             foreach (Currency c in currencies)
             {
                 c.CurrencyListenings = db.GetQueryResult(typeof(CurrencyListinings), $"SYMBOL = '{c.Symbol}'").ConvertAll(x => (CurrencyListinings)x);
+
+                CurrencyListinings before = null;
+                foreach (CurrencyListinings curr in c.CurrencyListenings.OrderBy(a => a.ListeningDate))
+                {
+                    curr.Before = before;
+                    before = curr;
+                }
             }
         }
     }

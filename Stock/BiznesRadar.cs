@@ -57,6 +57,16 @@ namespace Stock
             return @"http://www.biznesradar.pl/wskazniki-wartosci-rynkowej/" + company;
         }
 
+        public string GetDividendsHtml(string company)
+        {
+            return GetHtml(GetDividendsUrl(company));
+        }
+
+        private string GetDividendsUrl(string company)
+        {
+            return @"http://www.biznesradar.pl/dywidenda/" + company;
+        }
+
         private string financialIndicators;
         public string GetFinancialIndicatorsHtml(string company)
         {

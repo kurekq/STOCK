@@ -86,6 +86,7 @@ namespace Stock
         public void AfterFulfillingFromDatabase()
         {
             FulfillShareAmount();
+            FulfillPriceToProfit();
         }
 
         private void FulfillShareAmount()
