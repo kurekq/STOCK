@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Stock
 {
-    public class Stock : ICloneable
+    public class Stock : ICloneable, IPosition
     {
         [DatabaseField]
         public string ISIN;
@@ -51,6 +51,7 @@ namespace Stock
         }
         public List<ArchiveListinings> ArchiveListenings = new List<ArchiveListinings>();
         public List<FinancialReport> FinancialReports = new List<FinancialReport>();
+        public List<Dividends> Dividends = new List<Dividends>(); 
         public bool IsEmpty
         {
             get
@@ -80,6 +81,17 @@ namespace Stock
             foreach (ArchiveListinings al in ArchiveListenings)
             {
                 sqls.Add(al.GetSQLInsert());
+            }
+
+            sqls.AddRange(GetDividendsInserts());
+            return sqls;
+        }
+        public List<string> GetDividendsInserts()
+        {
+            List<string> sqls = new List<string>();
+            foreach (Dividends div in Dividends)
+            {
+                sqls.Add(div.GetSQLInsert());
             }
             return sqls;
         }
@@ -112,6 +124,26 @@ namespace Stock
             {
                 arch.PriceToProfit = new PriceToProfitCalculation(this.FinancialReports, arch).Calculate();
             }
+        }
+
+        public string GetSymbol()
+        {
+            return this.ISIN;
+        }
+
+        public string GetFullName()
+        {
+            return this.FullName;
+        }
+
+        public decimal GetPrice(DateTime dt)
+        {
+            return ArchiveListenings.Where(lis => lis.ListeningDate <= dt).OrderByDescending(lis => lis.ListeningDate).FirstOrDefault().ClosePrice;
+        }
+
+        public Currency GetCurrency()
+        {
+            return null;
         }
     }
 }

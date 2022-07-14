@@ -35,7 +35,11 @@ namespace Stock
                             {
                                 fi.SetValue(obj, reader.GetDecimal(counter));
                             }
-                            else
+                            else if (fi.FieldType.Name.ToLower() == "int32")
+                            {
+                                fi.SetValue(obj, reader.GetInt32(counter));
+                            }
+                            else 
                             {
                                 fi.SetValue(obj, reader.GetInt64(counter));
                             }

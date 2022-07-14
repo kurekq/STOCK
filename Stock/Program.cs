@@ -15,28 +15,81 @@ namespace Stock
     {
         static void Main(string[] args)
         {
-
-            new DividendsBuilder(
-                new Stock()
-                {
-                    BiznesRadarName = "TIM"
-                }).Get();
-            return;
             Database db = new Database();
 
             Stocks stocks = new Stocks();
-            stocks.FillFromDatabase();
 
-            int counter = 0;
-            foreach (ArchiveListinings arch in stocks.stocks.Select(s => s.ArchiveListenings.OrderByDescending(x => x.ListeningDate)).First())
-            {
-                if (counter < 10)
+            stocks.FillFromDatabase("ISIN in ('PLAMBRA00013','PLFERRO00016','PLPKO0000016','PLPZU0000011')");
+
+            Stock ambra = stocks.stocks[0];
+            Stock ferro = stocks.stocks[1];
+            Stock pko = stocks.stocks[2];
+            Stock pzu = stocks.stocks[3];
+
+
+            Portfolio portfolio = new Portfolio();
+            portfolio.AddTransaction(
+                new Transaction()
                 {
-                    Console.WriteLine(arch.ListeningDate + ": " + arch.PriceChange);
-                }
-                
-                counter++;
-            }
+                    Amount = 100,
+                    Date = new DateTime(2018,1,1),
+                    Position = ambra,
+                    Type = TransactionType.BUY
+                });
+
+            portfolio.AddTransaction(
+                new Transaction()
+                {
+                    Amount = 75,
+                    Date = new DateTime(2018, 2, 1),
+                    Position = ferro,
+                    Type = TransactionType.BUY
+                });
+
+            portfolio.AddTransaction(
+    new Transaction()
+    {
+        Amount = 150,
+        Date = new DateTime(2018, 3, 1),
+        Position = pko,
+        Type = TransactionType.BUY
+    });
+
+            portfolio.AddTransaction(
+new Transaction()
+{
+Amount = 125,
+Date = new DateTime(2021, 3, 1),
+Position = pko,
+Type = TransactionType.SELL
+});
+            portfolio.AddTransaction(
+new Transaction()
+{
+Amount = 117,
+Date = new DateTime(2022, 3, 7),
+Position = pzu,
+Type = TransactionType.BUY
+});
+
+            portfolio.AddTransaction(
+new Transaction()
+{
+   Amount = 1,
+   Date = new DateTime(2022, 3, 7),
+   Price = 20.17m,
+   Type = TransactionType.COMMISSION
+});
+
+            portfolio.AddTransaction(
+new Transaction()
+{
+Amount = 1,
+Date = new DateTime(2021, 1, 1),
+Price = 1114.99m,
+Type = TransactionType.COMMISSION
+});
+
             //GetStocks(Market.GPW);
             //GetStocks(Market.NEW_CONNECT);
             //StockIndexes stocks = new StockIndexes();
@@ -63,6 +116,20 @@ namespace Stock
                 ListeningBuilder builder = new ListeningBuilder(curr);
                 curr.CurrencyListenings = builder.GetCurrencyListinings();
                 db.RunNonQuery(curr.GetAllSqlsInsert());
+            }
+        }
+        private static void DividendsStuff(Stocks stocks)
+        {
+            Database db = new Database();
+            foreach (Stock s in stocks.stocks)
+            {
+                s.Dividends = new DividendsBuilder(s).Get();
+
+                if (s.Dividends.Count > 0)
+                {
+                    db.RunNonQuery(s.GetDividendsInserts());
+                    Console.WriteLine(s.BiznesRadarName + " dywidendy załadowane do bazy");
+                }
             }
         }
         private static List<Stock> GetStocks(Market market, string stockName = "")
@@ -132,6 +199,9 @@ namespace Stock
 
                     ListeningBuilder archiveListeningsBuilder = new ListeningBuilder(stock);
                     stock.ArchiveListenings = archiveListeningsBuilder.GetArchiveListinings();
+
+                    DividendsBuilder divBuilder = new DividendsBuilder(stock);
+                    stock.Dividends = divBuilder.Get();
 
                     db.RunNonQuery(stock.GetAllSqlsInsert());
 

@@ -10,7 +10,7 @@ namespace Stock
         public string ISIN;
 
         [DatabaseField]
-        public string ForYear;
+        public int ForYear;
 
         [DatabaseField]
         public decimal PricePerShare;
@@ -29,6 +29,11 @@ namespace Stock
 
         [DatabaseField]
         public DateTime PayoutDate;
+
+        public string GetSQLInsert()
+        {
+            return SqlBuilder.GetInsertTableQuery(this);
+        }
 
     }
 }
