@@ -10,5 +10,6 @@ namespace Stock
         string GetFullName();
         decimal GetPrice(DateTime dt);
         Currency GetCurrency();
+        List<IInterest> GetInterest(DateTime Payout, DateTime LastListiningWithLawToDiv);
     }
 }

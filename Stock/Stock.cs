@@ -145,5 +145,15 @@ namespace Stock
         {
             return null;
         }
+
+        public List<IInterest> GetInterest(DateTime payoutDate, DateTime lastListiningWithLawToDiv)
+        {
+            if (payoutDate == default && lastListiningWithLawToDiv == default)
+            {
+                throw new Exception("Wrong parameters for Stock.GetInterest");
+            }
+            return Dividends.Where(d => (d.PayoutDate == payoutDate || payoutDate == default)
+                && (d.LastListiningWithLawToDiv == lastListiningWithLawToDiv || lastListiningWithLawToDiv == default)).ToList().ConvertAll(d => (IInterest)d);
+        }
     }
 }

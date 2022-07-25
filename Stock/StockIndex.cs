@@ -54,5 +54,10 @@ namespace Stock
                 return new Currency() { Symbol = this.Currency };
             }            
         }
+
+        public List<IInterest> GetInterest(DateTime Payout, DateTime LastListiningWithLawToDiv)
+        {
+            return null;
+        }
     }
 }

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Stock
 {
-    public class Dividends
+    public class Dividends : IInterest
     {
         [DatabaseField]
         public string ISIN;
@@ -29,6 +29,16 @@ namespace Stock
 
         [DatabaseField]
         public DateTime PayoutDate;
+
+        public decimal GetInterestPerUnit()
+        {
+            return this.PricePerShare;
+        }
+
+        public DateTime GetPayoutDate()
+        {
+            return this.PayoutDate;
+        }
 
         public string GetSQLInsert()
         {

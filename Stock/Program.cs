@@ -27,68 +27,78 @@ namespace Stock
             Stock pzu = stocks.stocks[3];
 
 
-            Portfolio portfolio = new Portfolio();
-            portfolio.AddTransaction(
-                new Transaction()
+            Portfolio portfolio = new Portfolio(PortfolioType.TAXED);
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 1, 1), ambra, 100));
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 1, 1), ferro, 100));
+            
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 2, 1), ambra, 100));
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 2, 1), ferro, 100));
+
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 3, 1), ambra, 100));
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 3, 1), ferro, 100));
+
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 4, 1), ambra, 100));
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 4, 1), ferro, 100));
+
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 5, 1), ambra, 100));
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 5, 1), ferro, 100));
+
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 6, 1), ambra, 100));
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 6, 1), ferro, 100));
+
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 7, 1), ambra, 100));
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 7, 1), ferro, 100));
+
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 8, 1), ambra, 100));
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 8, 1), ferro, 100));
+
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 9, 1), ambra, 100));
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 9, 1), ferro, 100));
+
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 10, 1), ambra, 100));
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 10, 1), ferro, 100));
+
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 11, 1), ambra, 100));
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 11, 1), ferro, 100));
+
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 12, 1), ambra, 100));
+            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 12, 1), ferro, 100));
+
+            //portfolio.Transactions.AddTransaction(new SellTransaction(new DateTime(2019, 12, 16), ambra, 750));
+            //portfolio.Transactions.AddTransaction(new SellTransaction(new DateTime(2019, 12, 16), ferro, 750));
+
+            portfolio.Transactions.AddTransaction(new SellTransaction(new DateTime(2020, 12, 16), ambra, 1200));
+            portfolio.Transactions.AddTransaction(new SellTransaction(new DateTime(2020, 12, 16), ferro, 1200));
+
+            portfolio.Transactions.CalculateTaxForAllYears();
+
+            decimal overallBuy = portfolio.Transactions.Transactions.Where(t => t is BuyTransaction).Sum(t => t.GetValue());
+            decimal overallSell = portfolio.Transactions.Transactions.Where(t => t is SellTransaction).Sum(t => t.GetValue());
+
+            //Console.WriteLine(portfolio.Transactions.GetDescript());
+            Console.WriteLine(" ");
+            Console.WriteLine("wyniki: ");
+            PortfolioCashResult cashResult = portfolio.GetCashResult();
+            Console.WriteLine("Wartość portfela: " + cashResult.OveralValue);
+            Console.WriteLine("     - pozycje: " + cashResult.ComponentsValue);
+            Console.WriteLine("     - gotówka: " + cashResult.Cash);
+            Console.WriteLine("     - suma wpłat: " + cashResult.OverallPayins);
+            Console.WriteLine("");
+            Console.WriteLine("     - dywidendy: " + cashResult.DividendsValue);
+            Console.WriteLine("     - podatki: " + cashResult.TaxesValue);
+            Console.WriteLine("     - prowizje: " + cashResult.CommisionsValue);
+
+            decimal profitPercent = cashResult.Profit / cashResult.OverallPayins;
+            decimal d = 1;
+            foreach(PortfolioEvaluation eval in cashResult.Evaluations)
+            {
+                if (eval.Change != null && eval.Change != 0)
                 {
-                    Amount = 100,
-                    Date = new DateTime(2018,1,1),
-                    Position = ambra,
-                    Type = TransactionType.BUY
-                });
-
-            portfolio.AddTransaction(
-                new Transaction()
-                {
-                    Amount = 75,
-                    Date = new DateTime(2018, 2, 1),
-                    Position = ferro,
-                    Type = TransactionType.BUY
-                });
-
-            portfolio.AddTransaction(
-    new Transaction()
-    {
-        Amount = 150,
-        Date = new DateTime(2018, 3, 1),
-        Position = pko,
-        Type = TransactionType.BUY
-    });
-
-            portfolio.AddTransaction(
-new Transaction()
-{
-Amount = 125,
-Date = new DateTime(2021, 3, 1),
-Position = pko,
-Type = TransactionType.SELL
-});
-            portfolio.AddTransaction(
-new Transaction()
-{
-Amount = 117,
-Date = new DateTime(2022, 3, 7),
-Position = pzu,
-Type = TransactionType.BUY
-});
-
-            portfolio.AddTransaction(
-new Transaction()
-{
-   Amount = 1,
-   Date = new DateTime(2022, 3, 7),
-   Price = 20.17m,
-   Type = TransactionType.COMMISSION
-});
-
-            portfolio.AddTransaction(
-new Transaction()
-{
-Amount = 1,
-Date = new DateTime(2021, 1, 1),
-Price = 1114.99m,
-Type = TransactionType.COMMISSION
-});
+                    d *= eval.Change == null ? 1 : (decimal)((eval.Change + 100) / 100);
+                    Console.WriteLine($"{eval.Date}, Change = {eval.Change}, d = { d }");
+                }
+                
+            }
 
             //GetStocks(Market.GPW);
             //GetStocks(Market.NEW_CONNECT);
