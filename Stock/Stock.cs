@@ -155,5 +155,10 @@ namespace Stock
             return Dividends.Where(d => (d.PayoutDate == payoutDate || payoutDate == default)
                 && (d.LastListiningWithLawToDiv == lastListiningWithLawToDiv || lastListiningWithLawToDiv == default)).ToList().ConvertAll(d => (IInterest)d);
         }
+
+        public bool HasListinings(DateTime dt)
+        {
+            return this.ArchiveListenings.Any(al => al.ListeningDate == dt);
+        }
     }
 }

@@ -59,5 +59,10 @@ namespace Stock
         {
             return null;
         }
+
+        public bool HasListinings(DateTime dt)
+        {
+            return this.IndexListenings.Any(al => al.ListeningDate == dt);
+        }
     }
 }

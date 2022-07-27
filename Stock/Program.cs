@@ -28,6 +28,7 @@ namespace Stock
 
 
             Portfolio portfolio = new Portfolio(PortfolioType.TAXED);
+            //portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 1, 1), pzu, 500));
             portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 1, 1), ambra, 100));
             portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 1, 1), ferro, 100));
             
@@ -78,7 +79,7 @@ namespace Stock
             //Console.WriteLine(portfolio.Transactions.GetDescript());
             Console.WriteLine(" ");
             Console.WriteLine("wyniki: ");
-            PortfolioCashResult cashResult = portfolio.GetCashResult();
+            PortfolioResult cashResult = portfolio.GetCashResult();
             Console.WriteLine("Wartość portfela: " + cashResult.OveralValue);
             Console.WriteLine("     - pozycje: " + cashResult.ComponentsValue);
             Console.WriteLine("     - gotówka: " + cashResult.Cash);
@@ -87,6 +88,10 @@ namespace Stock
             Console.WriteLine("     - dywidendy: " + cashResult.DividendsValue);
             Console.WriteLine("     - podatki: " + cashResult.TaxesValue);
             Console.WriteLine("     - prowizje: " + cashResult.CommisionsValue);
+
+            decimal dd = cashResult.ProfitPerYear;
+
+            decimal drow = cashResult.Drowdown;
 
             decimal profitPercent = cashResult.Profit / cashResult.OverallPayins;
             decimal d = 1;

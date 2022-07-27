@@ -14,16 +14,16 @@ namespace Stock
             this.Type = type;
             Transactions = new TransactionManager(Type);
         }
-        public PortfolioCashResult GetCashResult()
+        public PortfolioResult GetCashResult()
         {
             return GetCashResult(DateTime.Now);
         }
-        public PortfolioCashResult GetCashResult(DateTime OnDate)
+        public PortfolioResult GetCashResult(DateTime OnDate)
         {
-            return new PortfolioCashResult()
+            return new PortfolioResult()
             {
                 CommisionsValue = Transactions.GetCommisionesValue(OnDate),
-                ComponentsValue = Transactions.GetComponentsValue(OnDate),
+                ComponentsValue = Transactions.GetComponentsValueToDate(OnDate),
                 ComponentsValueWithoutTodaySell = Transactions.GetYesterdayComponentsWithTodayValue(OnDate),
                 DividendsValue = Transactions.GetDividendsValue(OnDate),
                 TaxesValue = Transactions.GetTaxesValue(OnDate),
@@ -49,9 +49,13 @@ namespace Stock
             DateTime temp = from;
             while (temp <= to)
             { 
-                PortfolioEvaluation eval = GetPortfolioEvaluation(temp, before);
-                evals.Add(eval);
-                before = eval;
+                if (Transactions.AnyComponentsHasListinings(temp))
+                {
+                    PortfolioEvaluation eval = GetPortfolioEvaluation(temp, before);
+                    evals.Add(eval);
+                    before = eval;
+                }
+
                 temp = temp.AddDays(1);
             }
 
@@ -69,8 +73,8 @@ namespace Stock
                 decimal unitsToBuy = Math.Round(payin / before.Price, 2);
                 unit += unitsToBuy;
 
-                decimal componentsValue = Transactions.GetComponentsValue(onDate) + Transactions.GetDividendsValueInDay(onDate) - Transactions.GetDividendsTaxValueInDay(onDate);
-                
+                decimal componentsValue = Transactions.GetComponentsValueToDate(onDate) + Transactions.GetDividendsValueInDay(onDate) - Transactions.GetDividendsTaxValueInDay(onDate);
+               
                 if (componentsValue > 0)
                 {
                     price = Math.Round(componentsValue / unit, 2);
@@ -94,7 +98,7 @@ namespace Stock
             else
             {
                 price = 100;
-                unit = Math.Round(Transactions.GetComponentsValue(onDate) / price, 2);
+                unit = Math.Round(Transactions.GetComponentsValueToDate(onDate) / price, 2);
             }
 
             if (unit == 0)

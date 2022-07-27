@@ -77,7 +77,11 @@ namespace Stock
                 }
             }
         }
-        public decimal GetComponentsValue(DateTime OnDate)
+        public bool AnyComponentsHasListinings(DateTime OnDate)
+        {
+            return GetComponents(OnDate).Any(c => c.Position.HasListinings(OnDate));
+        }
+        public decimal GetComponentsValueToDate(DateTime OnDate)
         {
             return GetComponents(OnDate).Sum(c => c.GetValue());
         }

@@ -17,7 +17,7 @@ namespace Stock
                 double sum = sequence.Sum(d => Math.Pow(Decimal.ToDouble(d) - average, 2));
                 result = Math.Sqrt(sum / sequence.Count());
             }
-            return result;
+            return Math.Round(result, 4);
         }
     }
 }

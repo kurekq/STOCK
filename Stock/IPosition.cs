@@ -11,5 +11,6 @@ namespace Stock
         decimal GetPrice(DateTime dt);
         Currency GetCurrency();
         List<IInterest> GetInterest(DateTime Payout, DateTime LastListiningWithLawToDiv);
+        bool HasListinings(DateTime dt);
     }
 }
