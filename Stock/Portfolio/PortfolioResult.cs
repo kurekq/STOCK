@@ -21,8 +21,7 @@ namespace Stock
                     potentialMaxPrice = ev.Before.Price;
                     potencialMinPrice = Evaluations.Where(e => e.Date > potentialFrom).Min(e => e.Price);
 
-                    drowdown = Math.Max((1 - potencialMinPrice / potentialMaxPrice) * 100, drowdown);
-                        
+                    drowdown = Math.Max((1 - potencialMinPrice / potentialMaxPrice) * 100, drowdown);                       
                 }
                 return drowdown;
             }
@@ -33,6 +32,10 @@ namespace Stock
         {
             get
             {
+                if (OverallPayins == 0)
+                {
+                    return 0;
+                }
                 double profitDouble = 1 + Decimal.ToDouble(Profit / OverallPayins);
                 double AverageListiningsPerYear = 250;
                 
@@ -73,8 +76,8 @@ namespace Stock
         {
             get
             {
-                List<decimal> changes = Evaluations.Where(e => e.Change != null).Select(e => (decimal)e.Change).ToList();
-                return FinancialMath.StandardDeviation(changes);
+                List<decimal> prices = Evaluations.Select(a => (decimal)a.Price).ToList();
+                return FinancialMath.CalculateVolatility(prices) / Decimal.ToDouble(prices.Average());
             }
         }
         public decimal ComponentsValue;

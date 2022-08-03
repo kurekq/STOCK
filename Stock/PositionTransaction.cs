@@ -34,9 +34,9 @@ namespace Stock
             protected set;
         }
         public PositionTransaction(DateTime date, IPosition position, decimal amount)
-        {
-            this.Date = date;
+        {          
             this.Position = position;
+            this.Date = position.GetNearestListiningDateTime(date);
             this.Amount = amount;
         }
         public DateTime GetDateTime()

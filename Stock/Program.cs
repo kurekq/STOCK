@@ -1,7 +1,10 @@
 ﻿using FirebirdSql.Data.FirebirdClient;
+using Stock.Strategies;
+using Stock.Strategies.Swing;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -15,11 +18,21 @@ namespace Stock
     {
         static void Main(string[] args)
         {
-            Database db = new Database();
 
+            Database db = new Database();
             Stocks stocks = new Stocks();
 
-            stocks.FillFromDatabase("ISIN in ('PLAMBRA00013','PLFERRO00016','PLPKO0000016','PLPZU0000011')");
+            Stopwatch stopwatch = new Stopwatch();
+
+            stopwatch.Start();
+            //stocks.FillFromDatabase("ISIN in ('PLAMBRA00013','PLFERRO00016','PLPKO0000016','PLPZU0000011')");
+            stocks.FillFromDatabase();
+            stopwatch.Stop();
+
+            DateTime startDate = new DateTime(2012, 1, 1);
+            List<Stock> stocksBeforeStart = stocks.stocks.Where(s => s.ArchiveListinings.Any(a => a.ListeningDate < startDate)).OrderBy(s => s.GetVolatility(default, startDate)).ToList();
+
+            Console.WriteLine("Elapsed Time is {0} ms", stopwatch.ElapsedMilliseconds);
 
             Stock ambra = stocks.stocks[0];
             Stock ferro = stocks.stocks[1];
@@ -27,72 +40,63 @@ namespace Stock
             Stock pzu = stocks.stocks[3];
 
 
+            double lvl1Zmiennosc = stocksBeforeStart[34].GetVolatility(default, startDate);
+            double lvl2Zmiennosc = stocksBeforeStart[93].GetVolatility(default, startDate);
+            double lvl3Zmiennosc = stocksBeforeStart[165].GetVolatility(default, startDate);
+            double lvl4Zmiennosc = stocksBeforeStart[299].GetVolatility(default, startDate);
+            double lvl5Zmiennosc = stocksBeforeStart[373].GetVolatility(default, startDate);
+            double lvl6Zmiennosc = stocksBeforeStart[431].GetVolatility(default, startDate); 
+
             Portfolio portfolio = new Portfolio(PortfolioType.TAXED);
-            //portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 1, 1), pzu, 500));
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 1, 1), ambra, 100));
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 1, 1), ferro, 100));
-            
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 2, 1), ambra, 100));
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 2, 1), ferro, 100));
+            List<SwingTradingPortfolio> tradingPortfiolios = new List<SwingTradingPortfolio>();
 
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 3, 1), ambra, 100));
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 3, 1), ferro, 100));
+            foreach (Stock stock in stocks.stocks)
+            {
+                portfolio = new Portfolio(PortfolioType.TAXED);
+                SwingTrading swing = new SwingTrading();
+                StockToSwing stockSwing = swing.GetStockToSwing(stock);
 
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 4, 1), ambra, 100));
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 4, 1), ferro, 100));
+                foreach (SwingTransaction sTrans in stockSwing.GetSwingTransaction(10).OrderBy(st => st.TransactionDate))
+                {
+                    if (sTrans.TransactionType == typeof(BuyTransaction))
+                    {
+                        portfolio.Transactions.AddTransaction(new BuyTransaction(sTrans.TransactionDate, stockSwing.Stock, 1000));
+                    }
+                    else if (sTrans.TransactionType == typeof(SellTransaction))
+                    {
+                        portfolio.Transactions.AddTransaction(new SellTransaction(sTrans.TransactionDate, stockSwing.Stock, 1000));
+                    }
+                }
 
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 5, 1), ambra, 100));
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 5, 1), ferro, 100));
+                portfolio.Transactions.CalculateTaxForAllYears();
 
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 6, 1), ambra, 100));
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 6, 1), ferro, 100));
 
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 7, 1), ambra, 100));
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 7, 1), ferro, 100));
+                tradingPortfiolios.Add(new SwingTradingPortfolio() { Portfolio = portfolio, StockSwing = stockSwing });
 
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 8, 1), ambra, 100));
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 8, 1), ferro, 100));
 
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 9, 1), ambra, 100));
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 9, 1), ferro, 100));
+            }
 
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 10, 1), ambra, 100));
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 10, 1), ferro, 100));
+            string stocksInteresting = "";
+            int counter = 0;
+            foreach(SwingTradingPortfolio tport in tradingPortfiolios.Where(tp => tp.StockSwing.Stock.ArchiveListinings.OrderByDescending(a => a.ListeningDate).Select(a => a.MaxCap).FirstOrDefault() > 250000000).OrderByDescending(tp => tp.Portfolio.Transactions.Transactions.Count))
+            {
+                if (counter > 20)
+                {
+                    break;
+                }
+                stocksInteresting += Environment.NewLine;
+                stocksInteresting += "Stock: " + tport.StockSwing.Stock.FullName;
+                stocksInteresting += Environment.NewLine;
+                stocksInteresting += "SwingPrice: " + tport.StockSwing.SwingPrice;
+                tport.Portfolio.WriteToConsol();
+                stocksInteresting += tport.Portfolio.ToString();
+                stocksInteresting += Environment.NewLine;
+                counter++;
+            }
 
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 11, 1), ambra, 100));
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 11, 1), ferro, 100));
+            //string json = new ChartJson(cashResult.Evaluations.ToList().ConvertAll(e => (IChart)e)).GetJson();
 
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 12, 1), ambra, 100));
-            portfolio.Transactions.AddTransaction(new BuyTransaction(new DateTime(2019, 12, 1), ferro, 100));
-
-            //portfolio.Transactions.AddTransaction(new SellTransaction(new DateTime(2019, 12, 16), ambra, 750));
-            //portfolio.Transactions.AddTransaction(new SellTransaction(new DateTime(2019, 12, 16), ferro, 750));
-
-            portfolio.Transactions.AddTransaction(new SellTransaction(new DateTime(2020, 12, 16), ambra, 1200));
-            portfolio.Transactions.AddTransaction(new SellTransaction(new DateTime(2020, 12, 16), ferro, 1200));
-
-            portfolio.Transactions.CalculateTaxForAllYears();
-
-            decimal overallBuy = portfolio.Transactions.Transactions.Where(t => t is BuyTransaction).Sum(t => t.GetValue());
-            decimal overallSell = portfolio.Transactions.Transactions.Where(t => t is SellTransaction).Sum(t => t.GetValue());
-
-            //Console.WriteLine(portfolio.Transactions.GetDescript());
-            Console.WriteLine(" ");
-            Console.WriteLine("wyniki: ");
-            PortfolioResult cashResult = portfolio.GetCashResult();
-            Console.WriteLine("Wartość portfela: " + cashResult.OveralValue);
-            Console.WriteLine("     - pozycje: " + cashResult.ComponentsValue);
-            Console.WriteLine("     - gotówka: " + cashResult.Cash);
-            Console.WriteLine("     - suma wpłat: " + cashResult.OverallPayins);
-            Console.WriteLine("");
-            Console.WriteLine("     - dywidendy: " + cashResult.DividendsValue);
-            Console.WriteLine("     - podatki: " + cashResult.TaxesValue);
-            Console.WriteLine("     - prowizje: " + cashResult.CommisionsValue);
-
-            decimal dd = cashResult.ProfitPerYear;
-
-            decimal drow = cashResult.Drowdown;
-
+            /*
             decimal profitPercent = cashResult.Profit / cashResult.OverallPayins;
             decimal d = 1;
             foreach(PortfolioEvaluation eval in cashResult.Evaluations)
@@ -103,7 +107,7 @@ namespace Stock
                     Console.WriteLine($"{eval.Date}, Change = {eval.Change}, d = { d }");
                 }
                 
-            }
+            } */
 
             //GetStocks(Market.GPW);
             //GetStocks(Market.NEW_CONNECT);
@@ -213,7 +217,7 @@ namespace Stock
                     stock.FinancialReports = financialReportBuilder.Get();
 
                     ListeningBuilder archiveListeningsBuilder = new ListeningBuilder(stock);
-                    stock.ArchiveListenings = archiveListeningsBuilder.GetArchiveListinings();
+                    stock.ArchiveListinings = archiveListeningsBuilder.GetArchiveListinings();
 
                     DividendsBuilder divBuilder = new DividendsBuilder(stock);
                     stock.Dividends = divBuilder.Get();

@@ -36,12 +36,10 @@ namespace Stock
             Cash = 0;
             CalculatedTaxForYears = new List<int>();
         }
-
         public string GetDescript()
         {
             return string.Join(Environment.NewLine, Transactions.OrderBy(t => t.GetDateTime()).Select(t => t.GetDescript()));
         }
-
         public List<PortfolioComponent> GetComponents()
         {
             return GetComponents(DateTime.Now);
@@ -161,7 +159,6 @@ namespace Stock
                     this.Cash = 0;
                 }
             }
-
         }
         private string Validate(ITransaction t)
         {
@@ -180,7 +177,6 @@ namespace Stock
             }
             return "";
         }
-
         public void AddAutomaticTransactions(ITransaction t)
         {
             PositionTransaction pt = t as PositionTransaction;

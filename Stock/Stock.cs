@@ -49,7 +49,7 @@ namespace Stock
                 
             }
         }
-        public List<ArchiveListinings> ArchiveListenings = new List<ArchiveListinings>();
+        public List<ArchiveListinings> ArchiveListinings = new List<ArchiveListinings>();
         public List<FinancialReport> FinancialReports = new List<FinancialReport>();
         public List<Dividends> Dividends = new List<Dividends>(); 
         public bool IsEmpty
@@ -78,7 +78,7 @@ namespace Stock
                 sqls.Add(fr.GetSQLInsert());
             }
 
-            foreach (ArchiveListinings al in ArchiveListenings)
+            foreach (ArchiveListinings al in ArchiveListinings)
             {
                 sqls.Add(al.GetSQLInsert());
             }
@@ -103,7 +103,7 @@ namespace Stock
 
         private void FulfillShareAmount()
         {
-            foreach (ArchiveListinings arch in ArchiveListenings.Where(a => a.ListeningDate >= this.FinancialDebutDate).OrderByDescending(a => a.ListeningDate))
+            foreach (ArchiveListinings arch in ArchiveListinings.Where(a => a.ListeningDate >= this.FinancialDebutDate).OrderByDescending(a => a.ListeningDate))
             {
                 FinancialReport reportForListening = FinancialReports.Where(f => f.PrimaryReport >= arch.ListeningDate).OrderBy(f => f.PrimaryReport).FirstOrDefault();
 
@@ -120,7 +120,7 @@ namespace Stock
         }
         private void FulfillPriceToProfit()
         {
-            foreach (ArchiveListinings arch in ArchiveListenings.Where(a => a.ListeningDate >= this.FinancialDebutDate).OrderBy(a => a.ListeningDate))
+            foreach (ArchiveListinings arch in ArchiveListinings.Where(a => a.ListeningDate >= this.FinancialDebutDate).OrderBy(a => a.ListeningDate))
             {
                 arch.PriceToProfit = new PriceToProfitCalculation(this.FinancialReports, arch).Calculate();
             }
@@ -138,7 +138,7 @@ namespace Stock
 
         public decimal GetPrice(DateTime dt)
         {
-            return ArchiveListenings.Where(lis => lis.ListeningDate <= dt).OrderByDescending(lis => lis.ListeningDate).FirstOrDefault().ClosePrice;
+            return ArchiveListinings.Where(lis => lis.ListeningDate <= dt).OrderByDescending(lis => lis.ListeningDate).FirstOrDefault().ClosePrice;
         }
 
         public Currency GetCurrency()
@@ -158,7 +158,42 @@ namespace Stock
 
         public bool HasListinings(DateTime dt)
         {
-            return this.ArchiveListenings.Any(al => al.ListeningDate == dt);
+            return this.ArchiveListinings.Any(al => al.ListeningDate == dt);
+        }
+
+        public decimal GetOpenPrice(DateTime dt)
+        {
+            return ArchiveListinings.Where(lis => lis.ListeningDate <= dt).OrderByDescending(lis => lis.ListeningDate).FirstOrDefault().OpenPrice;
+        }
+
+        public decimal GetClosePrice(DateTime dt)
+        {
+            return ArchiveListinings.Where(lis => lis.ListeningDate <= dt).OrderByDescending(lis => lis.ListeningDate).FirstOrDefault().ClosePrice;
+        }
+
+        public decimal GetMinPrice(DateTime dt)
+        {
+            return ArchiveListinings.Where(lis => lis.ListeningDate <= dt).OrderByDescending(lis => lis.ListeningDate).FirstOrDefault().MinPrice;
+        }
+
+        public decimal GetMaxWPrice(DateTime dt)
+        {
+            return ArchiveListinings.Where(lis => lis.ListeningDate <= dt).OrderByDescending(lis => lis.ListeningDate).FirstOrDefault().MaxPrice;
+        }
+
+        public DateTime GetNearestListiningDateTime(DateTime dt)
+        {
+            return ArchiveListinings.Where(lis => lis.ListeningDate <= dt).OrderByDescending(lis => lis.ListeningDate).Select(lis => lis.ListeningDate).First();
+        }
+        public double GetVolatility()
+        {
+            return GetVolatility(default, default);
+        }
+
+        public double GetVolatility(DateTime from, DateTime to)
+        {
+            List<decimal> prices = ArchiveListinings.Where(a => a.ListeningDate >= from && (a.ListeningDate <= to || to == default)).Select(a => (decimal)a.OpenPrice).ToList();
+            return FinancialMath.CalculateVolatility(prices);
         }
     }
 }

@@ -15,10 +15,10 @@ namespace Stock
             stocks = db.GetQueryResult(typeof(Stock), whereClause).ConvertAll(x => (Stock)x);
             foreach (Stock s in stocks)
             {
-                s.ArchiveListenings = db.GetQueryResult(typeof(ArchiveListinings), $"ISIN = '{s.ISIN}'").ConvertAll(x => (ArchiveListinings)x);
+                s.ArchiveListinings = db.GetQueryResult(typeof(ArchiveListinings), $"ISIN = '{s.ISIN}'").ConvertAll(x => (ArchiveListinings)x);
 
                 ArchiveListinings before = null;
-                foreach (ArchiveListinings arch in s.ArchiveListenings.OrderBy(a => a.ListeningDate))
+                foreach (ArchiveListinings arch in s.ArchiveListinings.OrderBy(a => a.ListeningDate))
                 {
                     arch.Before = before;
                     before = arch;

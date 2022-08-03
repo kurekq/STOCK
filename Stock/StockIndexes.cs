@@ -14,10 +14,10 @@ namespace Stock
             stocks = db.GetQueryResult(typeof(StockIndex)).ConvertAll(x => (StockIndex)x);
             foreach (StockIndex s in stocks)
             {
-                s.IndexListenings = db.GetQueryResult(typeof(IndexListinings), $"SYMBOL = '{s.Symbol}'").ConvertAll(x => (IndexListinings)x);
+                s.IndexListinings = db.GetQueryResult(typeof(IndexListinings), $"SYMBOL = '{s.Symbol}'").ConvertAll(x => (IndexListinings)x);
 
                 IndexListinings before = null;
-                foreach (IndexListinings indexListining in s.IndexListenings.OrderBy(a => a.ListeningDate))
+                foreach (IndexListinings indexListining in s.IndexListinings.OrderBy(a => a.ListeningDate))
                 {
                     indexListining.Before = before;
                     before = indexListining;

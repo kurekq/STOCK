@@ -10,7 +10,7 @@ namespace Stock
         public string Symbol;
         public string FullName;
         public string Currency;
-        public List<IndexListinings> IndexListenings;
+        public List<IndexListinings> IndexListinings;
 
         public string GetSQLInsert()
         {
@@ -21,7 +21,7 @@ namespace Stock
             List<string> sqls = new List<string>();
             sqls.Add(this.GetSQLInsert());
 
-            foreach (IndexListinings al in IndexListenings)
+            foreach (IndexListinings al in IndexListinings)
             {
                 sqls.Add(al.GetSQLInsert());
             }
@@ -40,7 +40,7 @@ namespace Stock
 
         public decimal GetPrice(DateTime dt)
         {
-            return IndexListenings.Where(lis => lis.ListeningDate <= dt).OrderByDescending(lis => lis.ListeningDate).FirstOrDefault().ClosePrice;
+            return IndexListinings.Where(lis => lis.ListeningDate <= dt).OrderByDescending(lis => lis.ListeningDate).FirstOrDefault().ClosePrice;
         }
 
         public Currency GetCurrency()
@@ -62,7 +62,41 @@ namespace Stock
 
         public bool HasListinings(DateTime dt)
         {
-            return this.IndexListenings.Any(al => al.ListeningDate == dt);
+            return this.IndexListinings.Any(al => al.ListeningDate == dt);
+        }
+
+        public decimal GetOpenPrice(DateTime dt)
+        {
+            return IndexListinings.Where(lis => lis.ListeningDate <= dt).OrderByDescending(lis => lis.ListeningDate).FirstOrDefault().OpenPrice;
+        }
+
+        public decimal GetClosePrice(DateTime dt)
+        {
+            return IndexListinings.Where(lis => lis.ListeningDate <= dt).OrderByDescending(lis => lis.ListeningDate).FirstOrDefault().ClosePrice;
+        }
+
+        public decimal GetMinPrice(DateTime dt)
+        {
+            return IndexListinings.Where(lis => lis.ListeningDate <= dt).OrderByDescending(lis => lis.ListeningDate).FirstOrDefault().MinPrice;
+        }
+
+        public decimal GetMaxWPrice(DateTime dt)
+        {
+            return IndexListinings.Where(lis => lis.ListeningDate <= dt).OrderByDescending(lis => lis.ListeningDate).FirstOrDefault().MaxPrice;
+        }
+
+        public DateTime GetNearestListiningDateTime(DateTime dt)
+        {
+            return IndexListinings.Where(lis => lis.ListeningDate <= dt).OrderByDescending(lis => lis.ListeningDate).Select(lis => lis.ListeningDate).First();
+        }
+        public double GetVolatility()
+        {
+            return GetVolatility(default, default);
+        }
+        public double GetVolatility(DateTime from, DateTime to)
+        {
+            List<decimal> prices = IndexListinings.Where(a => a.ListeningDate >= from && (a.ListeningDate <= to || to == default)).Select(a => (decimal)a.OpenPrice).ToList();
+            return FinancialMath.CalculateVolatility(prices);
         }
     }
 }

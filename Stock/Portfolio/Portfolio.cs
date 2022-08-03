@@ -111,5 +111,33 @@ namespace Stock
             return ev;
         }
 
+        public void WriteToConsol()
+        {            
+            Console.WriteLine(ToString());
+        }
+
+        public override string ToString()
+        {
+            PortfolioResult cashResult = GetCashResult();
+            string toString = $"Wartość portfela: " + cashResult.OveralValue;
+            toString += Environment.NewLine;
+            toString += "     - ilość transakcji: " + Transactions.Transactions.Count + $" od {Transactions.FirstTransactionDate} do {Transactions.LastTransactionDate}";
+            toString += Environment.NewLine;
+            toString += "     - pozycje: " + cashResult.ComponentsValue;
+            toString += Environment.NewLine;
+            toString += "     - gotówka: " + cashResult.Cash;
+            toString += Environment.NewLine;
+            toString += "     - suma wpłat: " + cashResult.OverallPayins;
+            toString += Environment.NewLine;
+            toString += "     - dywidendy: " + cashResult.DividendsValue;
+            toString += Environment.NewLine;
+            toString += "     - podatki: " + cashResult.TaxesValue;
+            toString += Environment.NewLine;
+            toString += "     - prowizje: " + cashResult.CommisionsValue;
+            toString += Environment.NewLine;
+            toString += "     - roczna stopa zwrotu: " + cashResult.ProfitPerYear;
+            toString += Environment.NewLine;
+            return toString;
+        }
     }
 }
