@@ -6,7 +6,7 @@ namespace Stock.Strategies.Swing
 {
     public class StockSwingParameterLevels
     {
-        public StockSwingParameter[] parameters = new StockSwingParameter[7];
+        public StockSwingParameter[] Parameters = new StockSwingParameter[7];
 
         public StockSwingParameterLevels(StockSwingParameter lvl1,
             StockSwingParameter lvl2,
@@ -16,13 +16,18 @@ namespace Stock.Strategies.Swing
             StockSwingParameter lvl6,
             StockSwingParameter lvl7)
         {
-            parameters[0] = lvl1;
-            parameters[1] = lvl2;
-            parameters[2] = lvl3;
-            parameters[3] = lvl4;
-            parameters[4] = lvl5;
-            parameters[5] = lvl6;
-            parameters[6] = lvl7;
+            Parameters[0] = lvl1;
+            Parameters[1] = lvl2;
+            Parameters[2] = lvl3;
+            Parameters[3] = lvl4;
+            Parameters[4] = lvl5;
+            Parameters[5] = lvl6;
+            Parameters[6] = lvl7;
+        }
+
+        public decimal? GetValue(Random r, int lvl)
+        {
+            return Parameters[lvl - 1].GetValue(r);
         }
     }
 }
