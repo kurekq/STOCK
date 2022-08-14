@@ -27,7 +27,8 @@ namespace Stock.Strategies.Swing
             package.SwingDifferDown = paramsGenerator.GetSwingDifferencesDownParams().Parameters[lvlGenerator.GetSwingDifferencesDownParamLvl(Father?.SwingDifferDown, Mother?.SwingDifferDown) - 1];
             package.SwingDifferUp = paramsGenerator.GetSwingDifferencesUpParams().Parameters[lvlGenerator.GetSwingDifferencesUpParamLvl(Father?.SwingDifferUp, Mother?.SwingDifferUp) - 1];
             package.Votality = paramsGenerator.GetVotalityParams().Parameters[lvlGenerator.GetVotalityParamLvl(Father?.Votality, Mother?.Votality) - 1];
-            return new StockSwingParametersPackage();
+
+            return package;
         }
     }
 }

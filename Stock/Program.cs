@@ -19,6 +19,24 @@ namespace Stock
         static void Main(string[] args)
         {
 
+            StockSwingParameterLevelGenerator lvlGen = new StockSwingParameterLevelGenerator();
+            StockSwingParameter father = new StockSwingParameter(6);
+            StockSwingParameter mother = new StockSwingParameter(5);
+
+            int cnt = 0;
+
+            while (cnt < 50)
+            {
+                int lvl = lvlGen.GetLvl(father, mother);
+                Console.WriteLine("lvl: " + lvl);
+                cnt++;
+            }
+            
+
+            StockSwingParametersPackageGenerator pckGenerator = new StockSwingParametersPackageGenerator(null, null);
+
+            StockSwingParametersPackage pck =pckGenerator.GetPackage();
+
             Database db = new Database();
             Stocks stocks = new Stocks();
 
